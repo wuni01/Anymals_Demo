@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Anymals_Demo</string>
+    <string name="email">이메일</string>
+    <string name="password">비밀번호</string>
+    <string name="login">로그인</string>
+    <string name="title">환영합니다!\n</string>
+    <string name="sign_up">회원 가입</string>
+    <string name="Soon">Coming Soon!</string>
+    <string name="check_duplicate">중복 확인</string>
+    <string name="welcome_sign_up">환영합니다!\n회원 가입</string>
+    <string name="find_password">비밀번호 찾기"</string>
+    <string name="title_activity_maps">MapsActivity</string>
+</resources>

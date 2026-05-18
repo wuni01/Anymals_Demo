@@ -1,0 +1,22 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="80dp"
+        android:src="@drawable/pin_style" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/marker_image"
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="14dp"
+        android:padding="2dp"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/CircleImage" />
+</FrameLayout>

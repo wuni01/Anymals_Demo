@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="20dp"
+    android:layout_marginBottom="5dp"
+    android:background="@drawable/gradient_background"
+    android:elevation="5dp">
+
+    <Button
+        android:id="@+id/register_pet_main"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:background="@drawable/bg_dashed_circle"
+        app:backgroundTint="@null"
+        app:layout_constraintBottom_toTopOf="@+id/emptyText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <ImageView
+        android:id="@+id/plusIcon"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:src="@drawable/ic_plus"
+        android:clickable="false"
+        app:layout_constraintBottom_toBottomOf="@+id/register_pet_main"
+        app:layout_constraintEnd_toEndOf="@+id/register_pet_main"
+        app:layout_constraintStart_toStartOf="@+id/register_pet_main"
+        app:layout_constraintTop_toTopOf="@+id/register_pet_main"
+        app:tint="#FFFFFF" />
+
+    <TextView
+        android:id="@+id/emptyText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="나의 반려동물을 등록해주세요!"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/register_pet_main" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
