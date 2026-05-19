@@ -56,6 +56,20 @@
         app:layout_constraintStart_toStartOf="@id/txt_username"
         app:layout_constraintTop_toBottomOf="@id/txt_username" />
 
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_delete_pin"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:text="삭제"
+        android:textColor="#EF4444"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:background="@android:color/transparent"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/img_user_profile"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/img_user_profile"
+        tools:visibility="visible" />
 
     <TextView
         android:id="@+id/tv_pin_comment"
@@ -74,10 +88,14 @@
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/iv_pin_detail"
         android:layout_width="match_parent"
-        android:layout_height="220dp"
+        android:layout_height="0dp"
         android:layout_marginTop="12dp"
-        android:scaleType="centerCrop"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_pin_comment"
+        app:layout_constraintDimensionRatio="W,1:1"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent"
         tools:src="@tools:sample/backgrounds/scenic" />
 

@@ -31,6 +31,7 @@
             android:id="@+id/tv_section_action"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:paddingRight="10dp"
             android:text="목표 설정"
             android:textColor="#22C55E"
             android:textSize="14sp"
@@ -81,7 +82,7 @@
                     android:id="@+id/tv_distance_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="3.2"
+                    android:text="0.0"
                     android:textColor="#0F172A"
                     android:textSize="36sp"
                     android:textStyle="bold" />
@@ -116,7 +117,7 @@
                 android:layout_height="14dp"
                 android:layout_marginTop="20dp"
                 android:max="100"
-                android:progress="64"
+                android:progress="0"
                 android:progressDrawable="@drawable/custom_progress_bar"
                 app:layout_constraintTop_toBottomOf="@id/tv_distance_label"
                 app:layout_constraintStart_toStartOf="parent"
@@ -169,7 +170,7 @@
                         android:id="@+id/tv_calories_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="420"
+                        android:text="0"
                         android:textColor="#0F172A"
                         android:textSize="24sp"
                         android:textStyle="bold" />
@@ -226,7 +227,7 @@
                         android:id="@+id/tv_time_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="55"
+                        android:text="0"
                         android:textColor="#0F172A"
                         android:textSize="24sp"
                         android:textStyle="bold" />
@@ -235,7 +236,7 @@
                         android:id="@+id/tv_time_unit"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="min"
+                        android:text="hour"
                         android:textColor="#64748B"
                         android:textSize="14sp"
                         android:layout_marginStart="4dp" />

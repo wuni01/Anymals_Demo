@@ -74,6 +74,14 @@
                 android:id="@+id/layoutWeather"
                 layout="@layout/layout_weather_widget"
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp"/>
+
+            <include
+                android:id="@+id/layoutGoal"
+                layout="@layout/layout_goal_widget"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
             <include
@@ -81,138 +89,6 @@
                 layout="@layout/layout_iframe_community"
                 android:layout_width="match_parent"
                 android:layout_height="200dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:layout_marginEnd="6dp"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="오늘의 활동" android:textColor="#C2410C" android:textSize="10sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="산책 30분" android:textColor="#7C2D12" android:textSize="18sp" android:textStyle="bold"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:layout_marginStart="6dp"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="건강 상태" android:textColor="#059669" android:textSize="10sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="매우 좋음" android:textColor="#064E3B" android:textSize="18sp" android:textStyle="bold"/>
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:layout_marginEnd="6dp"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="목표 칼로리" android:textColor="#C2410C" android:textSize="10sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="300kcal" android:textColor="#7C2D12" android:textSize="18sp" android:textStyle="bold"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:layout_marginStart="6dp"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="소모 칼로리" android:textColor="#059669" android:textSize="10sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="100kacl" android:textColor="#064E3B" android:textSize="18sp" android:textStyle="bold"/>
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:layout_marginEnd="6dp"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="오늘의 활동" android:textColor="#C2410C" android:textSize="10sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="산책 30분" android:textColor="#7C2D12" android:textSize="18sp" android:textStyle="bold"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:layout_marginStart="6dp"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="건강 상태" android:textColor="#059669" android:textSize="10sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="매우 좋음" android:textColor="#064E3B" android:textSize="18sp" android:textStyle="bold"/>
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:layout_marginEnd="6dp"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="오늘의 활동" android:textColor="#C2410C" android:textSize="10sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="산책 30분" android:textColor="#7C2D12" android:textSize="18sp" android:textStyle="bold"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:layout_marginStart="6dp"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="건강 상태" android:textColor="#059669" android:textSize="10sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="매우 좋음" android:textColor="#064E3B" android:textSize="18sp" android:textStyle="bold"/>
-                </LinearLayout>
-
-            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

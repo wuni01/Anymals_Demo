@@ -1,6 +1,8 @@
 package com.example.anymals_demo;
 
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -10,9 +12,15 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.text.InputType;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,6 +64,15 @@ public class MainActivity extends AppCompatActivity {
     private TextView tv_walk_recommend;
     private ImageView iv_weather_icon;
     private TextView tv_humidity;
+    private TextView tvDailyGoal;
+    private TextView tvDistanceValue;
+    private TextView tvCaloriesValue;
+    private TextView tvTimeValue;
+    private ProgressBar progressWalkRatio;
+    private TextView tvSectionAction;
+
+
+    private double dailyGoalKm = 5.0;
     private static final String KEY_REH = "last_reh";
     private com.google.android.gms.location.FusedLocationProviderClient fusedLocationClient;
     private double currentLat = 0.0;
@@ -69,10 +86,13 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> cameraLauncher;
     private ActivityResultLauncher<Intent> cropLauncher;
     private String currentUid;
+    private DatabaseReference statsRef;
+    private ValueEventListener statsListener;
+    private android.content.BroadcastReceiver dateChangeReceiver;
 
     private void saveWeatherData(String temp, String pty, String reh) {
-        android.content.SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        android.content.SharedPreferences.Editor editor = prefs.edit();
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
         if (temp != null) editor.putString(KEY_TEMP, temp);
         if (pty != null) editor.putString(KEY_PTY, pty);
         if (reh != null) editor.putString(KEY_REH, reh);
@@ -86,17 +106,17 @@ public class MainActivity extends AppCompatActivity {
             case "1": case "4":
                 status = "비";
                 resId = R.drawable.ic_rain;
-                tv_walk_recommend.setText("비가 와요. 실내 놀이를 추천해요! ☔");
+                tv_walk_recommend.setText("비가 와요. 실내 놀이를 추천해요!");
                 break;
             case "2": case "3":
                 status = "눈";
                 resId = R.drawable.ic_snow;
-                tv_walk_recommend.setText("눈이 와요! 발바닥을 조심하세요 ❄️");
+                tv_walk_recommend.setText("눈이 와요! 발바닥을 조심하세요");
                 break;
             default:
                 status = "맑음";
                 resId = R.drawable.ic_sun;
-                tv_walk_recommend.setText("산책하기 딱 좋은 날씨예요! 🐕");
+                tv_walk_recommend.setText("산책하기 딱 좋은 날씨예요!");
                 break;
         }
         tv_weather_desc.setText(status);
@@ -179,7 +199,13 @@ public class MainActivity extends AppCompatActivity {
                         if (items != null) {
                             for (GetWeather.WeatherItem item : items) {
                                 if (item.category.equals("T1H")) {
-                                    String temp = item.obsrValue + "°";
+                                    String temp = item.obsrValue;
+
+                                    if (temp.contains(".")) {
+                                        temp = temp.substring(0, temp.indexOf("."));
+                                    }
+                                    temp = temp + "°";
+
                                     tv_temperature.setText(temp);
                                     saveWeatherData(temp, null,null);
                                 }
@@ -258,15 +284,33 @@ public class MainActivity extends AppCompatActivity {
         tv_walk_recommend = findViewById(R.id.tv_walk_recommend);
         tv_humidity = findViewById(R.id.tv_humidity);
         iv_weather_icon = findViewById(R.id.iv_weather_icon);
+        tvDailyGoal = findViewById(R.id.tv_daily_goal);
+        tvDistanceValue = findViewById(R.id.tv_distance_value);
+        tvCaloriesValue = findViewById(R.id.tv_calories_value);
+        tvTimeValue = findViewById(R.id.tv_time_value);
+        progressWalkRatio = findViewById(R.id.progress_walk_ratio);
+        tvSectionAction = findViewById(R.id.tv_section_action);
 
+        tvSectionAction.setOnClickListener(v -> showGoalSettingDialog());
         fusedLocationClient = com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(this);
 
         initImageLaunchers();
 
-        android.widget.ImageButton logoutButton = findViewById(R.id.logout_btn);
+        dateChangeReceiver = new android.content.BroadcastReceiver() {
+            @Override
+            public void onReceive(android.content.Context context, Intent intent) {
+                if (Intent.ACTION_DATE_CHANGED.equals(intent.getAction())) {
+                    Log.d("DateChange", "날짜가 변경되었습니다. 데이터를 초기화합니다.");
+                    loadTodayActivityData();
+                }
+            }
+        };
+        registerReceiver(dateChangeReceiver, new IntentFilter(Intent.ACTION_DATE_CHANGED));
+
+        ImageButton logoutButton = findViewById(R.id.logout_btn);
         if (logoutButton != null) {
             logoutButton.setOnClickListener(v -> {
-                new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this)
+                new AlertDialog.Builder(MainActivity.this)
                         .setTitle("로그아웃")
                         .setMessage("로그아웃 하시겠습니까?")
                         .setPositiveButton("취소", (dialog, which) -> {
@@ -312,6 +356,8 @@ public class MainActivity extends AppCompatActivity {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             currentUid = user.getUid();
+            loadTodayActivityData();
+
             DatabaseReference petRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUid).child("petProfile");
 
             petRef.addValueEventListener(new ValueEventListener() {
@@ -341,7 +387,7 @@ public class MainActivity extends AppCompatActivity {
                                         .transform(new com.bumptech.glide.load.resource.bitmap.RoundedCorners(30))
                                         .into(pet_profile_image);
                             } else {
-                                pet_profile_image.setImageResource(R.drawable.ic_pet_default);
+                                pet_profile_image.setImageResource(R.drawable.ic_camera);
                             }
                         }
                     }
@@ -359,6 +405,147 @@ public class MainActivity extends AppCompatActivity {
         }
 
         startWalkButton();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (dateChangeReceiver != null) {
+            unregisterReceiver(dateChangeReceiver);
+        }
+        if (statsRef != null && statsListener != null) {
+            statsRef.removeEventListener(statsListener);
+        }
+    }
+
+    private void showGoalSettingDialog() {
+        final EditText editText = new EditText(this);
+        editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        editText.setHint("예: 5.0");
+        editText.setSingleLine(true);
+
+        FrameLayout container = new FrameLayout(this);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+
+        int sideMargin = (int) (24 * getResources().getDisplayMetrics().density);
+        int topBottomMargin = (int) (12 * getResources().getDisplayMetrics().density);
+
+        params.setMargins(sideMargin, topBottomMargin, sideMargin, topBottomMargin);
+        editText.setLayoutParams(params);
+
+        container.addView(editText);
+
+        new AlertDialog.Builder(this)
+                .setTitle("오늘의 목표 거리 설정")
+                .setMessage("목표 산책 거리(km)를 입력하세요.")
+                .setView(container)
+                .setPositiveButton("저장", (dialog, which) -> {
+                    String input = editText.getText().toString().trim();
+                    if (!input.isEmpty()) {
+                        try {
+                            dailyGoalKm = Double.parseDouble(input);
+                            tvDailyGoal.setText(String.format(Locale.getDefault(), "목표: %.1fKM", dailyGoalKm));
+
+                            if (currentUid != null) {
+                                SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+                                SharedPreferences.Editor editor = prefs.edit();
+                                editor.putString(currentUid + "_user_daily_goal", String.valueOf(dailyGoalKm));
+                                editor.apply();
+                            }
+
+                            double currentDistance = Double.parseDouble(tvDistanceValue.getText().toString());
+                            updateWalkProgressBar(currentDistance);
+                        } catch (NumberFormatException e) {
+                            Toast.makeText(MainActivity.this, "올바른 숫자를 입력해주세요.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .setNegativeButton("취소", null)
+                .show();
+    }
+
+    private void updateActivityUI(double totalDistanceKm, double totalCalories, int totalMinutes) {
+        tvDistanceValue.setText(String.format(Locale.getDefault(), "%.2f", totalDistanceKm));
+        tvCaloriesValue.setText(String.format(Locale.getDefault(), "%.1f", totalCalories));
+
+        TextView tvTimeUnit = findViewById(R.id.tv_time_unit);
+
+        if (totalMinutes >= 60) {
+            int hours = totalMinutes / 60;
+            int mins = totalMinutes % 60;
+
+            if (mins > 0) {
+                tvTimeValue.setText(hours + "시간 " + mins);
+                tvTimeUnit.setText("분");
+            } else {
+                tvTimeValue.setText(String.valueOf(hours));
+                tvTimeUnit.setText("시간");
+            }
+        } else {
+            tvTimeValue.setText(String.valueOf(totalMinutes));
+            tvTimeUnit.setText("분");
+        }
+
+        updateWalkProgressBar(totalDistanceKm);
+    }
+
+    private void updateWalkProgressBar(double currentDistanceKm) {
+        if (dailyGoalKm > 0) {
+            int ratio = (int) ((currentDistanceKm / dailyGoalKm) * 100);
+            if (ratio > 100) ratio = 100;
+            progressWalkRatio.setProgress(ratio);
+        } else {
+            progressWalkRatio.setProgress(0);
+        }
+    }
+
+    private void loadTodayActivityData() {
+        if (currentUid == null) return;
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
+        sdf.setTimeZone(java.util.TimeZone.getTimeZone("Asia/Seoul"));
+        String todayDate = sdf.format(new Date());
+
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        dailyGoalKm = Double.parseDouble(prefs.getString(currentUid + "_user_daily_goal", "5.0"));
+        tvDailyGoal.setText(String.format(Locale.getDefault(), "목표: %.1fKM", dailyGoalKm));
+
+        if (statsRef != null && statsListener != null) {
+            statsRef.removeEventListener(statsListener);
+        }
+
+        statsRef = FirebaseDatabase.getInstance().getReference("Users")
+                .child(currentUid).child("dailyStats").child(todayDate);
+
+        statsListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                double totalDistanceKm = 0.0;
+                double totalCalories = 0.0;
+                int totalMinutes = 0;
+
+                if (snapshot.exists()) {
+                    Object dObj = snapshot.child("totalDistanceKm").getValue();
+                    Object cObj = snapshot.child("totalCalories").getValue();
+                    Object mObj = snapshot.child("totalMinutes").getValue();
+
+                    if (dObj instanceof Number) totalDistanceKm = ((Number) dObj).doubleValue();
+                    if (cObj instanceof Number) totalCalories = ((Number) cObj).doubleValue();
+                    if (mObj instanceof Number) totalMinutes = ((Number) mObj).intValue();
+                }
+
+                updateActivityUI(totalDistanceKm, totalCalories, totalMinutes);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("FirebaseError", "오늘의 활동 로드 실패: " + error.getMessage());
+            }
+        };
+        statsRef.addValueEventListener(statsListener);
     }
 
     private void initImageLaunchers() {
@@ -522,7 +709,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadSavedWeatherData() {
-        android.content.SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String savedTemp = prefs.getString(KEY_TEMP, "--°");
         String savedPty = prefs.getString(KEY_PTY, "0");
         String savedReh = prefs.getString(KEY_REH, "습도 --%");

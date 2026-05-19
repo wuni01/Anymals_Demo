@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,8 +35,13 @@ import com.naver.maps.map.OnMapReadyCallback;
 import com.naver.maps.map.overlay.Marker;
 import com.naver.maps.map.overlay.OverlayImage;
 import com.naver.maps.map.overlay.PathOverlay;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
+
 import com.naver.maps.map.LocationTrackingMode;
 
 
@@ -44,11 +50,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private long start_walk;
     private double lat, lng;
     private View loadingLayout;
+    private Button btnDeletePin;
     private Button finish_walk_button;
     private LatLng lastValidLatLng = null;
     private long lastUpdateTime = 0;
     private PathOverlay path = new PathOverlay();
     private List<LatLng> coords = new ArrayList<>();
+    private List<Marker> markerList = new ArrayList<>();
     private NaverMap naverMap;
     private com.naver.maps.map.util.FusedLocationSource locationSource;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1000;
@@ -76,6 +84,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         View bottomSheet = findViewById(R.id.pin_bottom_sheet);
         ivPinDetail = findViewById(R.id.iv_pin_detail);
+        btnDeletePin = findViewById(R.id.btn_delete_pin);
         tvPinComment = findViewById(R.id.tv_pin_comment);
 
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
@@ -83,8 +92,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         bottomSheetBehavior.setSaveFlags(BottomSheetBehavior.SAVE_ALL);
         bottomSheetBehavior.setFitToContents(true);
         bottomSheetBehavior.setSkipCollapsed(true);
-//        bottomSheetBehavior.setFitToContents(false);
-//        bottomSheetBehavior.setHalfExpandedRatio(0.5f);
 
         lat = getIntent().getDoubleExtra("lat", 0.0);
         lng = getIntent().getDoubleExtra("lng", 0.0);
@@ -111,27 +118,120 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void showWalkSummary() {
-        long endTime = System.currentTimeMillis();
-        long walkTimeMillis = endTime - start_walk;
-        double distance = calculateTotalDistance();
-        String distanceStr = (distance >= 1000) ?
-                String.format("%.2f km", distance / 1000) :
-                (int)distance + " m";
+        com.google.firebase.auth.FirebaseUser currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "반려동물 정보가 없어 소모칼로리를 계산할 수 없습니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String uid = currentUser.getUid();
+        DatabaseReference petRef = FirebaseDatabase.getInstance().getReference("Users")
+                .child(uid).child("petProfile");
 
-        int minutes = (int) (walkTimeMillis / (1000 * 60));
-        int seconds = (int) (walkTimeMillis / 1000) % 60;
+        petRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                double petWeight = 5.0;
 
-        String summary = "🐾 산책 완료!\n\n" +
-                "총 산책 시간: " + minutes + "분 " + seconds + "초\n" +
-                "총 이동 거리: " + distanceStr + "\n" +
-                "고생하셨어요!";
+                if (snapshot.exists()) {
+                    Pet pet = snapshot.getValue(Pet.class);
+                    if (pet != null && pet.weight > 0) {
+                        petWeight = pet.weight;
+                    }
+                }
 
-        new AlertDialog.Builder(this)
-                .setTitle("산책 정산")
-                .setMessage(summary)
-                .setPositiveButton("확인", (dialog, which) -> finish())
-                .setCancelable(false)
-                .show();
+                long endTime = System.currentTimeMillis();
+                long walkTimeMillis = endTime - start_walk;
+                double distanceMeter = calculateTotalDistance();
+                double distanceKm = distanceMeter / 1000.0;
+
+                String distanceStr = (distanceMeter >= 1000) ?
+                        String.format(java.util.Locale.getDefault(), "%.2f km", distanceKm) :
+                        (int) distanceMeter + " m";
+
+                int totalSeconds = (int) (walkTimeMillis / 1000);
+                int hours = totalSeconds / 3600;
+                int minutes = (totalSeconds % 3600) / 60;
+                int seconds = totalSeconds % 60;
+                int totalMinutesWalked = (int) Math.ceil(walkTimeMillis / (1000.0 * 60.0));
+
+                String timeStr;
+                if (hours > 0) {
+                    timeStr = hours + "시간 " + minutes + "분 " + seconds + "초";
+                } else {
+                    timeStr = minutes + "분 " + seconds + "초";
+                }
+
+                double caloriesBurned = petWeight * distanceKm * 1.1;
+                String calorieStr = String.format(java.util.Locale.getDefault(), "%.1f kcal", caloriesBurned);
+
+                String summary = "산책 완료!\n\n" +
+                        "총 산책 시간: " + timeStr + "\n" +
+                        "총 이동 거리: " + distanceStr + "\n" +
+                        "소모 칼로리: " + calorieStr + "\n\n" +
+                        "고생하셨어요!";
+
+                new AlertDialog.Builder(MapsActivity.this)
+                        .setTitle("산책 정산")
+                        .setMessage(summary)
+                        .setPositiveButton("확인", (dialog, which) -> {
+                            saveWalkDataToFirebase(uid, distanceKm, caloriesBurned, totalMinutesWalked);
+                        })
+                        .setCancelable(false)
+                        .show();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                android.util.Log.e("FirebaseError", "몸무게 데이터 로드 실패: " + error.getMessage());
+                Toast.makeText(MapsActivity.this, "데이터를 불러오는 데 실패했습니다.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void saveWalkDataToFirebase(String uid, double distanceKm, double calories, int minutes) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
+        String todayDate = sdf.format(new Date());
+
+        DatabaseReference statsRef = FirebaseDatabase.getInstance().getReference("Users")
+                .child(uid).child("dailyStats").child(todayDate);
+
+        statsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                double currentDistance = 0.0;
+                double currentCalories = 0.0;
+                int currentMinutes = 0;
+
+                if (snapshot.exists()) {
+                    Double d = snapshot.child("totalDistanceKm").getValue(Double.class);
+                    Double c = snapshot.child("totalCalories").getValue(Double.class);
+                    Integer m = snapshot.child("totalMinutes").getValue(Integer.class);
+
+                    if (d != null) currentDistance = d;
+                    if (c != null) currentCalories = c;
+                    if (m != null) currentMinutes = m;
+                }
+
+                java.util.Map<String, Object> updates = new java.util.HashMap<>();
+                updates.put("totalDistanceKm", currentDistance + distanceKm);
+                updates.put("totalCalories", currentCalories + calories);
+                updates.put("totalMinutes", currentMinutes + minutes);
+
+                statsRef.setValue(updates)
+                        .addOnSuccessListener(aVoid -> {
+                            finish();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(MapsActivity.this, "DB 저장 실패: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            finish();
+                        });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                finish();
+            }
+        });
     }
 
     @Override
@@ -233,8 +333,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         pinsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                // [팁] 새로운 데이터를 받기 전에 기존 마커들을 지우고 싶다면
-                // naverMap.clear()를 쓰거나 마커 리스트를 관리하세요.
+                for (Marker marker : markerList) {
+                    marker.setMap(null);
+                }
+                markerList.clear();
 
                 for (DataSnapshot data : snapshot.getChildren()) {
                     PinModel pin = data.getValue(PinModel.class);
@@ -261,15 +363,40 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             ivPinDetail.setVisibility(View.GONE);
         }
 
+        com.google.firebase.auth.FirebaseUser currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && pin.uid != null && pin.uid.equals(currentUser.getUid())) {
+            btnDeletePin.setVisibility(View.VISIBLE);
+
+            btnDeletePin.setOnClickListener(v -> {
+                new AlertDialog.Builder(this)
+                        .setTitle("핀 삭제")
+                        .setMessage("이 핀을 삭제하시겠습니까?\n지도에서 영구히 사라집니다.")
+                        .setPositiveButton("삭제", (dialog, which) -> {
+                            pinsRef.child(pin.pinId).removeValue()
+                                    .addOnSuccessListener(aVoid -> {
+                                        Toast.makeText(MapsActivity.this, "핀이 성공적으로 삭제되었습니다.", Toast.LENGTH_SHORT).show();
+                                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(MapsActivity.this, "삭제 실패: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
+                        })
+                        .setNegativeButton("취소", null)
+                        .show();
+            });
+        } else {
+            btnDeletePin.setVisibility(View.GONE);
+        }
+
         TextView tvUploaderName = findViewById(R.id.txt_username);
         TextView tvUploadDate = findViewById(R.id.txt_timestamp);
         ImageView ivUploaderProfile = findViewById(R.id.img_user_profile);
 
         if (pin.timestamp > 0) {
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy년 MM월 dd일", java.util.Locale.getDefault());
-            sdf.setTimeZone(java.util.TimeZone.getTimeZone("Asia/Seoul"));
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy년 MM월 dd일", Locale.getDefault());
+            sdf.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
 
-            tvUploadDate.setVisibility(View.VISIBLE); // 다시 보이게 설정
+            tvUploadDate.setVisibility(View.VISIBLE);
             tvUploadDate.setText(sdf.format(new java.util.Date(pin.timestamp)));
         }
         else {
@@ -373,5 +500,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             showPinDetail(pin);
             return true;
         });
+        markerList.add(marker);
     }
 }

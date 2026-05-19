@@ -7,7 +7,6 @@
     android:background="@android:color/white"
     android:padding="8dp">
 
-    <!-- Post 1 -->
     <TextView
         android:id="@+id/tvPost1"
         android:layout_width="0dp"
@@ -31,7 +30,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvPost1" />
 
-    <!-- Post 2 -->
+
     <TextView
         android:id="@+id/tvPost2"
         android:layout_width="0dp"
@@ -55,7 +54,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvPost2" />
 
-    <!-- Post 3 -->
     <TextView
         android:id="@+id/tvPost3"
         android:layout_width="0dp"
@@ -79,7 +77,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvPost3" />
 
-    <!-- Post 4 -->
     <TextView
         android:id="@+id/tvPost4"
         android:layout_width="0dp"

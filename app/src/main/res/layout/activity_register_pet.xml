@@ -68,6 +68,8 @@
                 android:layout_marginBottom="24dp"
                 android:background="@drawable/bg_edittext"
                 android:hint="이름을 입력해주세요"
+                android:textColorHint="#A8A8A8"
+                android:textColor="@color/black"
                 android:paddingHorizontal="16dp"
                 android:inputType="text"/>
 
@@ -135,6 +137,8 @@
                 android:layout_marginBottom="24dp"
                 android:background="@drawable/bg_edittext"
                 android:hint="예 : 푸들, 말티즈"
+                android:textColorHint="#A8A8A8"
+                android:textColor="@color/black"
                 android:paddingHorizontal="16dp" />
 
             <TextView
@@ -151,8 +155,10 @@
                 android:layout_height="56dp"
                 android:layout_marginBottom="24dp"
                 android:background="@drawable/bg_edittext"
-                android:hint="20XX-XX-XX"
-                android:inputType="date"
+                android:hint="8자리 숫자 입력"
+                android:textColorHint="#A8A8A8"
+                android:textColor="@color/black"
+                android:inputType="number"
                 android:paddingHorizontal="16dp" />
 
             <TextView
@@ -170,6 +176,8 @@
                 android:layout_marginBottom="32dp"
                 android:background="@drawable/bg_edittext"
                 android:hint="0.0"
+                android:textColorHint="#A8A8A8"
+                android:textColor="@color/black"
                 android:inputType="numberDecimal"
                 android:paddingHorizontal="16dp" />
         </LinearLayout>

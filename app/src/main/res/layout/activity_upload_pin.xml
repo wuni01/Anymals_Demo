@@ -77,12 +77,11 @@
                     android:scaleType="centerInside"
                     android:src="@drawable/ic_camera_pin" />
 
-                <!-- 선택된 이미지가 보여질 뷰 (처음엔 숨김) -->
                 <ImageView
                     android:id="@+id/selectedImageView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
+                    android:scaleType="fitCenter"
                     android:visibility="gone" />
             </androidx.cardview.widget.CardView>
 
@@ -102,9 +101,10 @@
                 android:background="@drawable/bg_edittext"
                 android:gravity="top|start"
                 android:hint="공유하고 싶은 현재의 감상을 적어주세요!"
+                android:textColorHint="#A8A8A8"
                 android:inputType="textMultiLine"
                 android:padding="16dp"
-                android:textColor="#2D3748"
+                android:textColor="@color/black"
                 android:textSize="16sp" />
 
         </LinearLayout>

@@ -2,6 +2,8 @@ package com.example.anymals_demo;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -26,7 +28,7 @@ import java.util.HashMap;
 
 public class SignupActivity extends AppCompatActivity {
 
-    FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    private FirebaseAuth mAuth = FirebaseAuth.getInstance();
     private boolean isEmailChecked = false;
 
     @Override
@@ -50,6 +52,17 @@ public class SignupActivity extends AppCompatActivity {
         EditText register_password = findViewById(R.id.register_password);
         EditText register_password_confirm = findViewById(R.id.register_password_confirm);
         Button register_user = findViewById(R.id.register_user_btn);
+
+        register_email.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                isEmailChecked = false;
+            }
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
 
         check_duplicate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -115,27 +128,24 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void checkEmailDuplicate(String email) {
+        mAuth.fetchSignInMethodsForEmail(email)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        java.util.List<String> signInMethods = task.getResult().getSignInMethods();
 
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Users");
-        Query query = ref.orderByChild("email").equalTo(email);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    Toast.makeText(SignupActivity.this, "이미 존재하는 이메일입니다.", Toast.LENGTH_SHORT).show();
-                    isEmailChecked = false;
-                }
-                else {
-                    Toast.makeText(SignupActivity.this, "사용 가능한 이메일입니다.", Toast.LENGTH_SHORT).show();
-                    isEmailChecked = true;
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("FirebaseError", error.getMessage());
-                Toast.makeText(SignupActivity.this, "오류가 발생했습니다: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                        if (signInMethods != null && !signInMethods.isEmpty()) {
+                            Toast.makeText(SignupActivity.this, "이미 존재하는 이메일입니다.", Toast.LENGTH_SHORT).show();
+                            isEmailChecked = false;
+                        } else {
+                            Toast.makeText(SignupActivity.this, "사용 가능한 이메일입니다.", Toast.LENGTH_SHORT).show();
+                            isEmailChecked = true;
+                        }
+                    } else {
+                        Log.e("FirebaseAuthError", task.getException().getMessage());
+                        Toast.makeText(SignupActivity.this, "오류가 발생했습니다: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        isEmailChecked = false;
+                    }
+                });
     }
 
     private void saveUserToDatabase(String uid, String email) {
